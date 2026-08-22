@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>window.location.href = "manage-passengers.html";</script>
+    <title>لوحة الإدارة الموحدة — مؤتمر الشباب 2026</title>
+    <link rel="icon" type="image/png" href="assets/img/logo-favicon.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/identity.css">
+    <link rel="stylesheet" href="assets/css/classic-conference.css">
+    <style>
+        body {
+            background: #060b19;
+            color: #f1f5f9;
+            font-family: 'Cairo', sans-serif;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(8, 14, 28, 0.98));
+            border-bottom: 1px solid rgba(6, 182, 212, 0.25);
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-title-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(124, 58, 237, 0.2));
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            color: #22d3ee;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        /* شريط إعدادات الربط بـ Google Apps Script */
+        .gas-config-bar {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 1rem 1rem;
+            backdrop-filter: blur(15px);
+        }
+
+        .gas-input-wrap {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .gas-input {
+            flex: 1;
+            min-width: 280px;
+            background: rgba(4, 8, 20, 0.8);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            color: #22d3ee;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            direction: ltr;
+        }
+
+        .gas-input:focus {
+            outline: none;
+            border-color: #22d3ee;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+        }
+
+        @keyframes shieldFloat {
+            0%, 100% { transform: translateY(0) scale(1); box-shadow: 0 0 25px rgba(56, 189, 248, 0.3); }
+            50% { transform: translateY(-6px) scale(1.03); box-shadow: 0 0 35px rgba(56, 189, 248, 0.55); }
+        }
+        .auth-modal-input {
+            width: 100% !important;
+            padding: 13px 44px 13px 44px !important;
+            border-radius: 14px !important;
+            border: 1px solid rgba(56, 189, 248, 0.3) !important;
+            background: rgba(15, 23, 42, 0.85) !important;
+            color: #ffffff !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            text-align: right !important;
+            direction: ltr !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+        .auth-modal-input:focus {
+            border-color: #38bdf8 !important;
+            background: rgba(15, 23, 42, 0.95) !important;
+            box-shadow: 0 0 22px rgba(56, 189, 248, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+        }
+        .auth-modal-input::placeholder {
+            color: #64748b !important;
+            font-weight: 500 !important;
+        }
+
+        /* كروت الإحصائيات السريعة */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card-glass {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
+            padding: 1rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card-glass .num {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #38bdf8;
+            line-height: 1.2;
+        }
+
+        .stat-card-glass .lbl {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* جدول التحكم الأساسي الـ 8 أعمدة */
+        .table-container {
+            margin: 0 1rem 2rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-responsive-custom {
+            overflow-x: auto;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            text-align: right;
+        }
+
+        .admin-table th {
+            background: rgba(6, 182, 212, 0.12);
+            color: #22d3ee;
+            font-weight: 800;
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+            white-space: nowrap;
+        }
+
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+            color: #e2e8f0;
+        }
+
+        .admin-table tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .badge-chip {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            display: inline-block;
+        }
+
+        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+        .badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .badge-gold { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .badge-pink { background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3); }
+
+        .btn-act {
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-act-edit { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4); }
+        .btn-act-edit:hover { background: #06b6d4; color: #fff; }
+        
+        .btn-act-del { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .btn-act-del:hover { background: #ef4444; color: #fff; }
+
+        .btn-pts {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+        }
+        .btn-pts:hover { background: #06b6d4; border-color: #22d3ee; }
+
+        /* النافذة المنبثقة للتعديل والـ Modal */
+        .modal-glass-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1050;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-glass-box {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(8, 14, 28, 0.98));
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 550px;
+            padding: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(6, 182, 212, 0.15);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="admin-title-wrap">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <a href="pages/home.html" class="btn-primary-app" style="padding: 6px 14px; font-size: 0.82rem; text-decoration: none;">
+                    <i class="bi bi-arrow-right"></i> الرئيسية
+                </a>
+                <h1 style="font-size: 1.2rem; font-weight: 900; margin: 0;">📊 إدارة قاعدة البيانات الموحدة</h1>
+                <span class="admin-badge" id="syncStatusBadge">Google Apps Script</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-primary-app" onclick="openGuideModal()" style="padding: 8px 14px; font-size: 0.82rem; background: rgba(124, 58, 237, 0.2); border-color: rgba(124, 58, 237, 0.4); color: #c084fc;">
+                    <i class="bi bi-code-slash"></i> كود Code.gs
+                </button>
+                <button class="btn-primary-app" onclick="syncNow()" id="syncBtn" style="padding: 8px 16px; font-size: 0.82rem;">
+                    <i class="bi bi-arrow-repeat"></i> مزامنة الشيت الآن
+                </button>
+                <button class="btn-primary-app" onclick="adminLogout()" style="padding: 8px 14px; font-size: 0.82rem; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #f87171;">
+                    <i class="bi bi-box-arrow-right"></i> خروج
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- شريط ضبط مفتاح الأمان (الـ GAS URL مُدار عبر Netlify) -->
+    <div class="gas-config-bar">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <strong style="color: #22d3ee; font-size: 0.92rem;"><i class="bi bi-shield-check"></i> إعدادات الربط السحابي:</strong>
+                <div style="font-size: 0.78rem; color: #94a3b8;">الـ GAS URL مخزن في Netlify — يمكنك تخصيص مفتاح الأمان هنا</div>
+            </div>
+            <button class="btn-primary-app" onclick="saveGasSettings()" style="padding: 6px 14px; font-size: 0.8rem;">
+                <i class="bi bi-check2-circle"></i> حفظ Token
+            </button>
+        </div>
+        <div class="gas-input-wrap" style="margin-top: 10px;">
+            <div style="flex: 2; display: flex; align-items: center; gap: 10px; background: rgba(6,182,212,0.07); border: 1px solid rgba(6,182,212,0.2); border-radius: 10px; padding: 8px 14px;">
+                <i class="bi bi-cloud-check-fill" style="color: #22d3ee;"></i>
+                <code style="font-size: 0.8rem; color: #22d3ee; direction: ltr;">/_api/gas → Google Apps Script (Netlify Proxy)</code>
+            </div>
+            <input type="password" id="gasTokenInput" class="gas-input" style="flex: 1;" placeholder="مفتاح الأمان (Security Token)">
+        </div>
+
+        <!-- تنبيه وحل مشكلة يتعذر فتح الملف -->
+        <div style="margin-top: 12px; padding: 10px 14px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; font-size: 0.8rem; color: #fbbf24; line-height: 1.6;">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> حل مشكلة "عذراً يتعذر فتح الملف في الوقت الحالي":</strong>
+            <ul style="margin: 4px 0 0 0; padding-right: 1.2rem; font-size: 0.78rem; color: #cbd5e1;">
+                <li><strong>افتح السكربت من داخل الشيت:</strong> افتح شيت Google أولاً، ومن القائمة اختر <code>التمديدات (Extensions) ➔ Apps Script</code> بدلاً من إنشائه خارج الشيت.</li>
+                <li><strong>ضبط النشر (Who has access):</strong> عند الضغط على <code>Deploy ➔ New deployment</code> تأكد من إعداد <code>Who has access: Anyone</code> (أي شخص).</li>
+                <li><strong>الحسابات المتعددة:</strong> إذا ظهرت الشاشة في المتصفح، جرب فتح رابط النشر في <code>نافذة متخفية (Incognito)</code> لتفادي تداخل حسابات جوجل.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="stats-grid">
+        <div class="stat-card-glass">
+            <div class="num" id="statTotal">0</div>
+            <div class="lbl">إجمالي المشتركين</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="num" id="statPoints" style="color: #fbbf24;">0</div>
+            <div class="lbl">مجموع النقاط</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="num" id="statRooms" style="color: #c084fc;">0</div>
+            <div class="lbl">الغرف المجهزة</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="num" id="statBuses" style="color: #34d399;">0</div>
+            <div class="lbl">المقاعد المجهزة</div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="num" id="statFeedbacks" style="color: #f472b6;">0</div>
+            <div class="lbl">التقييمات المسجلة</div>
+        </div>
+    </div>
+
+    <!-- أدوات البحث والتصفية والأزرار -->
+    <div style="display: flex; gap: 10px; padding: 0 1rem; margin-bottom: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+        <div style="display: flex; gap: 10px; flex: 1; min-width: 260px;">
+            <input type="text" id="searchInput" class="gas-input" placeholder="🔍 ابحث بالاسم، المجموعة، الغرفة، أو الاتوبيس..." oninput="renderTable()" style="direction: rtl;">
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-primary-app" onclick="pushAllToSheet()" style="padding: 8px 14px; font-size: 0.85rem; background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <i class="bi bi-cloud-arrow-up-fill"></i> رفع كافة البيانات للشيت
+            </button>
+            <button class="btn-primary-app" onclick="openEditModal()" style="padding: 8px 16px; font-size: 0.85rem;">
+                <i class="bi bi-person-plus-fill"></i> إضافة مشترك جديد
+            </button>
+        </div>
+    </div>
+
+    <!-- جدول الـ 8 أعمدة الرئيسي -->
+    <div class="table-container">
+        <div class="table-responsive-custom">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th>الاسم</th>
+                        <th>المجموعة</th>
+                        <th>النقاط</th>
+                        <th>الغرفة</th>
+                        <th>الاتوبيس</th>
+                        <th>المقعد</th>
+                        <th>رايك فى المؤتمر</th>
+                        <th>ترشيح الرحلة الجاية</th>
+                        <th style="text-align: center;">إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="attendeesTableBody">
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                            <i class="bi bi-arrow-repeat spin"></i> جارِ تحميل البيانات من Google Sheets...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal التعديل والإضافة -->
+    <div class="modal-glass-backdrop" id="editModal">
+        <div class="modal-glass-box">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 900; margin: 0; color: #22d3ee;" id="modalTitle">إضافة / تعديل مشترك</h3>
+                <button onclick="closeEditModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <form id="attendeeForm" onsubmit="handleFormSubmit(event)">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">1. الاسم الثلاثي (مطلوب)</label>
+                        <input type="text" id="fieldName" class="gas-input" style="direction: rtl; width: 100%;" required placeholder="مثال: كيرلس صبحي">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">2. المجموعة</label>
+                        <input type="text" id="fieldGroup" class="gas-input" style="direction: rtl; width: 100%;" placeholder="مثال: مجموعة 1">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">3. النقاط</label>
+                        <input type="number" id="fieldPoints" class="gas-input" style="direction: rtl; width: 100%;" value="0">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">4. الغرفة</label>
+                        <input type="text" id="fieldRoom" class="gas-input" style="direction: rtl; width: 100%;" placeholder="101">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">5. الاتوبيس</label>
+                        <input type="text" id="fieldBus" class="gas-input" style="direction: rtl; width: 100%;" placeholder="أتوبيس 1">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">6. المقعد</label>
+                        <input type="text" id="fieldSeat" class="gas-input" style="direction: rtl; width: 100%;" placeholder="15">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">7. رايك فى المؤتمر</label>
+                        <textarea id="fieldFeedback" class="gas-input" style="direction: rtl; width: 100%; height: 60px;" placeholder="ملاحظات وتقييم المشترك..."></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" style="font-size: 0.82rem; font-weight: 700; color: #cbd5e1;">8. ترشيح الرحلة الجاية</label>
+                        <input type="text" id="fieldNextTrip" class="gas-input" style="direction: rtl; width: 100%;" placeholder="اقتراحات الأماكن لرحلة المؤتمر القادمة...">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 1.5rem; justify-content: flex-end;">
+                    <button type="button" class="btn-primary-app" onclick="closeEditModal()" style="background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.15); color: #94a3b8;">إلغاء</button>
+                    <button type="submit" class="btn-primary-app" id="submitModalBtn">حفظ وإرسال للشيت</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal دليل وتثبيت Google Apps Script -->
+    <div class="modal-glass-backdrop" id="guideModal">
+        <div class="modal-glass-box" style="max-width: 650px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 900; margin: 0; color: #c084fc;">كود Google Apps Script (Code.gs)</h3>
+                <button onclick="closeGuideModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            <p style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.6;">
+                1. افتح شيت Google جديد وسمّه "مؤتمر الشباب 2026".<br>
+                2. اذهب إلى <strong>التمديدات (Extensions) -> Apps Script</strong>.<br>
+                3. امسح أي كود موجود هناك، والصق الكود التالي بالكامل.<br>
+                4. احفظ ثم اضغط <strong>تطبيق (Deploy) -> تطبيق ويب جديد (New deployment)</strong>.<br>
+                5. في "من يحق له الوصول" اختر <strong>أي شخص (Anyone)</strong>.<br>
+                6. انسخ رابط تطبيق الويب واكتبه فوق في مربع الرابط بصفحة الإدارة!
+            </p>
+
+            <div style="position: relative; margin-top: 10px;">
+                <textarea id="gasScriptCode" class="gas-input" style="width: 100%; height: 220px; font-size: 0.78rem; direction: ltr;" readonly></textarea>
+                <button onclick="copyGasCode()" class="btn-primary-app" style="position: absolute; top: 10px; right: 10px; padding: 4px 10px; font-size: 0.75rem;">
+                    <i class="bi bi-clipboard"></i> نسخ الكود
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal تسجيل دخول الأدمن -->
+    <div class="modal-glass-backdrop" id="adminAuthModal" style="display: flex; z-index: 2000; background: rgba(4, 8, 20, 0.9); backdrop-filter: blur(24px);">
+        <div class="modal-glass-box" style="max-width: 440px; width: 92%; text-align: center; background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.92)); border: 1px solid rgba(56, 189, 248, 0.35); box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(14, 165, 233, 0.25); border-radius: 28px; padding: 2.2rem 1.8rem; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: -60px; right: -60px; width: 140px; height: 140px; background: rgba(56, 189, 248, 0.2); filter: blur(50px); border-radius: 50%;"></div>
+            <div style="position: absolute; bottom: -60px; left: -60px; width: 140px; height: 140px; background: rgba(16, 185, 129, 0.2); filter: blur(50px); border-radius: 50%;"></div>
+            
+            <div style="width: 76px; height: 76px; margin: 0 auto 1.1rem; background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(15, 23, 42, 0.8) 70%); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(56, 189, 248, 0.3); animation: shieldFloat 3s ease-in-out infinite;">
+                <i class="bi bi-shield-lock-fill" style="font-size: 2.5rem; color: #38bdf8; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.8));"></i>
+            </div>
+            
+            <h3 style="font-size: 1.35rem; font-weight: 900; color: #fff; margin-bottom: 0.35rem; letter-spacing: -0.5px;">تسجيل دخول الإدارة</h3>
+            <p style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 1.6rem; line-height: 1.5;">أدخل اسم المستخدم وكلمة المرور للوصول إلى لوحة التحكم</p>
+            
+            <form onsubmit="handleAdminLogin(event)" style="position: relative; z-index: 2;">
+                <!-- Username Input -->
+                <div style="text-align: right; margin-bottom: 1.2rem;">
+                    <label style="font-size: 0.82rem; font-weight: 800; color: #cbd5e1; margin-bottom: 7px; display: block;">
+                        <i class="bi bi-person-badge-fill me-1" style="color: #38bdf8;"></i> اسم المستخدم
+                    </label>
+                    <div style="position: relative;">
+                        <input type="text" id="adminUser" class="auth-modal-input" required placeholder="ادخل اسم المستخدم..." autocomplete="off">
+                        <i class="bi bi-person-fill" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #38bdf8; font-size: 1.1rem; pointer-events: none;"></i>
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div style="text-align: right; margin-bottom: 1.25rem;">
+                    <label style="font-size: 0.82rem; font-weight: 800; color: #cbd5e1; margin-bottom: 7px; display: block;">
+                        <i class="bi bi-shield-key-fill me-1" style="color: #38bdf8;"></i> كلمة المرور
+                    </label>
+                    <div style="position: relative;">
+                        <input type="password" id="adminPass" class="auth-modal-input" required placeholder="ادخل كلمة المرور..." autocomplete="off">
+                        <i class="bi bi-key-fill" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #38bdf8; font-size: 1.1rem; pointer-events: none;"></i>
+                        <button type="button" onclick="togglePasswordVisibility('adminPass', 'adminPassEyeIcon')" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #94a3b8; font-size: 1.1rem; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;" title="إظهار/إخفاء كلمة المرور">
+                            <i class="bi bi-eye-slash" id="adminPassEyeIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="adminLoginHint" style="color: #fbbf24; font-size: 0.78rem; font-weight: 800; margin-bottom: 12px; display: none; background: rgba(245, 158, 11, 0.12); border: 1px dashed rgba(245, 158, 11, 0.5); padding: 8px 12px; border-radius: 12px; backdrop-filter: blur(10px);">
+                    🔒 املأ اسم المستخدم وكلمة المرور أولاً للضغط على الدخول!
+                </div>
+
+                <div id="loginErrorMsg" style="color: #f87171; font-size: 0.82rem; font-weight: 800; margin-bottom: 12px; display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); padding: 9px 12px; border-radius: 12px;">
+                    ❌ اسم المستخدم أو كلمة المرور غير صحيحة
+                </div>
+
+                <div style="position: relative; height: 52px; width: 100%; margin-top: 10px;">
+                    <button type="submit" id="adminLoginSubmitBtn" class="btn-primary-app" style="width: 100%; height: 100%; font-size: 1rem; font-weight: 900; border-radius: 14px; background: linear-gradient(135deg, rgba(6,182,212,0.35), rgba(16,185,129,0.25)); border: 1px solid rgba(56, 189, 248, 0.4); color: #fff; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        دخول اللوحة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="assets/js/core.js"></script>
+    <!-- config.js: إعدادات GAS -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/data-service.js"></script>
+    <script>
+        // 🔒 المصادقة الآن على جانب السيرفر (Netlify Function)
+        // لا هاشات، لا بيانات دخول في الـ Client
+        let attendeesList = [];
+        let _adminSessionToken = null;
+
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye-slash';
+            }
+        }
+
+        function initAdminEvadingSubmitButton() {
+            const btn = document.getElementById('adminLoginSubmitBtn');
+            const user = document.getElementById('adminUser');
+            const pass = document.getElementById('adminPass');
+            const hint = document.getElementById('adminLoginHint');
+
+            if (!btn) return;
+
+            function isFormComplete() {
+                return user.value.trim().length > 0 && pass.value.trim().length > 0;
+            }
+
+            function checkFormValidityStatus() {
+                if (isFormComplete()) {
+                    btn.style.transform = 'translate(0, 0)';
+                    btn.style.background = 'linear-gradient(135deg, #06b6d4, #10b981)';
+                    btn.style.borderColor = '#10b981';
+                    btn.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.5)';
+                    btn.style.cursor = 'pointer';
+                    btn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> دخول اللوحة الآن ✨';
+                    if (hint) hint.style.display = 'none';
+                } else {
+                    btn.style.background = 'linear-gradient(135deg, rgba(6,182,212,0.3), rgba(16,185,129,0.2))';
+                    btn.style.borderColor = 'rgba(34, 211, 238, 0.4)';
+                    btn.style.boxShadow = 'none';
+                    btn.textContent = 'دخول اللوحة';
+                }
+            }
+
+            [user, pass].forEach(input => {
+                input.addEventListener('input', checkFormValidityStatus);
+                input.addEventListener('keyup', checkFormValidityStatus);
+            });
+
+            btn.addEventListener('mousemove', function(e) {
+                if (!isFormComplete()) {
+                    const rect = btn.getBoundingClientRect();
+                    const mouseX = e.clientX;
+                    const mouseY = e.clientY;
+                    const btnCenterX = rect.left + rect.width / 2;
+                    const btnCenterY = rect.top + rect.height / 2;
+
+                    let deltaX = (btnCenterX - mouseX);
+                    let deltaY = (btnCenterY - mouseY);
+
+                    if (Math.abs(deltaX) < 15) deltaX = (Math.random() > 0.5 ? 1 : -1) * 80;
+                    if (Math.abs(deltaY) < 10) deltaY = (Math.random() > 0.5 ? 1 : -1) * 40;
+
+                    const shiftX = Math.min(Math.max(deltaX * 2.2, -140), 140);
+                    const shiftY = Math.min(Math.max(deltaY * 2.2, -40), 40);
+
+                    btn.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+                    if (hint) hint.style.display = 'block';
+                }
+            });
+
+            btn.addEventListener('mouseleave', function() {
+                if (!isFormComplete()) {
+                    setTimeout(() => {
+                        if (!isFormComplete()) {
+                            btn.style.transform = 'translate(0, 0)';
+                        }
+                    }, 900);
+                }
+            });
+
+            checkFormValidityStatus();
+        }
+
+        function checkAdminSession() {
+            const token = sessionStorage.getItem('admin_session_token');
+            if (token) {
+                _adminSessionToken = token;
+                document.getElementById('adminAuthModal').style.display = 'none';
+                return true;
+            } else {
+                document.getElementById('adminAuthModal').style.display = 'flex';
+                initAdminEvadingSubmitButton();
+                return false;
+            }
+        }
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const user    = document.getElementById('adminUser').value.trim();
+            const pass    = document.getElementById('adminPass').value.trim();
+            const errMsg  = document.getElementById('loginErrorMsg');
+            const submitBtn = document.getElementById('adminLoginSubmitBtn');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> جارِ التحقق...';
+
+            try {
+                const res = await fetch('/_api/admin-auth', {
+                    method : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body   : JSON.stringify({ username: user, password: pass })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.status === 'success') {
+                    // حفظ التوكن في sessionStorage (يُمسح عند إغلاق التبويب)
+                    sessionStorage.setItem('admin_session_token', data.token);
+                    _adminSessionToken = data.token;
+                    errMsg.style.display = 'none';
+                    checkAdminSession();
+                    syncNow();
+                } else {
+                    errMsg.textContent = '❌ ' + (data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+                    errMsg.style.display = 'block';
+                }
+            } catch (err) {
+                // Fallback: إذا لم تكن Netlify Functions متاحة (GitHub Pages / محلي)
+                errMsg.textContent = '⚠️ تعذر الاتصال بخادم المصادقة. تأكد من نشر المشروع على Netlify.';
+                errMsg.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-box-arrow-in-right me-1"></i> دخول اللوحة الآن ✨';
+            }
+        }
+
+        function adminLogout() {
+            if (confirm("هل تريد تسجيل الخروج من لوحة الإدارة؟")) {
+                sessionStorage.removeItem('admin_session_token');
+                _adminSessionToken = null;
+                checkAdminSession();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!checkAdminSession()) return;
+
+            // تحميل الـ Token المحفوظ فقط (الـ URL مُدار عبر Netlify)
+            const savedToken = DataService.getGasToken();
+            if (savedToken) {
+                document.getElementById('gasTokenInput').value = savedToken;
+            }
+
+            await loadScriptCodeText();
+            await syncNow();
+        });
+
+        async function loadScriptCodeText() {
+            try {
+                const res = await fetch('assets/js/google-apps-script-Code.gs.js');
+                const text = await res.text();
+                document.getElementById('gasScriptCode').value = text;
+            } catch (e) {}
+        }
+
+        function saveGasSettings() {
+            // الـ URL مُدار عبر Netlify — نحفظ الـ Token فقط
+            const token = document.getElementById('gasTokenInput').value;
+            if (token) DataService.setGasToken(token);
+            alert('تم حفظ مفتاح الأمان بنجاح! ✅');
+            syncNow();
+        }
+
+        async function syncNow() {
+            const syncBtn = document.getElementById('syncBtn');
+            syncBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> جار المزامنة...';
+
+            try {
+                // إبطال الكاش لإجبار التحديث
+                DataService.invalidateCache();
+                const confData = await DataService.loadConference();
+                attendeesList = confData.participants || [];
+                renderTable();
+                updateStats();
+                // فحص الاتصال بالـ proxy
+                const proxyOk = await fetch('/_api/gas').then(r => r.ok).catch(() => false);
+                const badge = document.getElementById('syncStatusBadge');
+                badge.textContent = proxyOk ? 'متصل بـ Google Sheets ✅' : 'تم التحميل محلياً ⚠️';
+                badge.style.borderColor = proxyOk ? '#10b981' : '#f59e0b';
+                badge.style.color = proxyOk ? '#34d399' : '#fbbf24';
+            } catch (e) {
+                console.error(e);
+            } finally {
+                syncBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> مزامنة الشيت الآن';
+            }
+        }
+
+        async function pushAllToSheet() {
+            // الـ proxy دائماً جاهز — لا حاجة للتحقق من الـ URL
+            if (!confirm(`هل تريد رفع كافة بيانات المشتركين الحالية (${attendeesList.length} مشترك) إلى شيت Google؟`)) {
+                return;
+            }
+
+            const syncBtn = document.getElementById('syncBtn');
+            syncBtn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill spin"></i> جار الرفع للشيت...';
+
+            const items = attendeesList.map(a => ({
+                name: a.name || '',
+                group: a.group || '',
+                points: Number(a.points || 0),
+                room: a.room || '',
+                bus: a.bus || '',
+                seat: a.seat || '',
+                feedback: a.feedback || '',
+                nextTrip: a.nextTrip || ''
+            }));
+
+            const res = await DataService.sendToGAS({
+                action: 'bulkImport',
+                items: items
+            });
+
+            syncBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> مزامنة الشيت الآن';
+
+            if (res && (res.status === 'success' || res.status === 'offline')) {
+                alert('✅ تم إرسال أمر الرفع لكافة المشتركين إلى Google Sheets بنجاح!');
+                setTimeout(() => { syncNow(); }, 1500);
+            } else {
+                alert('⚠️ حدث تعذر في الاتصال، يرجى مراجعة إعدادات النشر ومحاولة المزامنة مجدداً.');
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('statTotal').textContent = attendeesList.length;
+            const pts = attendeesList.reduce((acc, curr) => acc + Number(curr.points || 0), 0);
+            document.getElementById('statPoints').textContent = pts;
+            const rooms = attendeesList.filter(a => a.room).length;
+            document.getElementById('statRooms').textContent = rooms;
+            const buses = attendeesList.filter(a => a.bus && a.seat).length;
+            document.getElementById('statBuses').textContent = buses;
+            const feedbacks = attendeesList.filter(a => a.feedback || a.nextTrip).length;
+            document.getElementById('statFeedbacks').textContent = feedbacks;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('attendeesTableBody');
+            const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
+            
+            let filtered = attendeesList;
+            if (query) {
+                filtered = attendeesList.filter(a => 
+                    (a.name && a.name.toLowerCase().includes(query)) ||
+                    (a.group && a.group.toLowerCase().includes(query)) ||
+                    (a.room && a.room.toLowerCase().includes(query)) ||
+                    (a.bus && a.bus.toLowerCase().includes(query))
+                );
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2rem;color:#94a3b8;">لا توجد بيانات مطابقة</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((a, idx) => `
+                <tr>
+                    <td style="color:#64748b;font-weight:700;">${idx + 1}</td>
+                    <td style="font-weight:800;color:#fff;">${escapeHTML(a.name || '-')}</td>
+                    <td>${a.group ? `<span class="badge-chip badge-cyan">${escapeHTML(a.group)}</span>` : '-'}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <button class="btn-pts" onclick="adjPoints('${escapeHTML(a.name)}', -5)">-</button>
+                            <span style="font-weight:900;color:#fbbf24;">${a.points || 0}</span>
+                            <button class="btn-pts" onclick="adjPoints('${escapeHTML(a.name)}', 10)">+</button>
+                        </div>
+                    </td>
+                    <td>${a.room ? `<span class="badge-chip badge-purple">🚪 غ ${escapeHTML(a.room)}</span>` : '-'}</td>
+                    <td>${a.bus ? `<span class="badge-chip badge-gold">🚌 ${escapeHTML(a.bus)}</span>` : '-'}</td>
+                    <td>${a.seat ? `<span class="badge-chip badge-pink">م ${escapeHTML(a.seat)}</span>` : '-'}</td>
+                    <td style="font-size:0.8rem;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHTML(a.feedback || '')}">${escapeHTML(a.feedback || '-')}</td>
+                    <td style="font-size:0.8rem;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escapeHTML(a.nextTrip || '')}">${escapeHTML(a.nextTrip || '-')}</td>
+                    <td style="text-align:center;">
+                        <div style="display:flex;gap:4px;justify-content:center;">
+                            <button class="btn-act btn-act-edit" onclick="editRow('${escapeHTML(a.name)}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-act btn-act-del" onclick="deleteRow('${escapeHTML(a.name)}')"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function adjPoints(name, delta) {
+            const item = attendeesList.find(a => a.name === name);
+            if (!item) return;
+            item.points = Math.max(0, Number(item.points || 0) + delta);
+            renderTable();
+            updateStats();
+
+            await DataService.sendToGAS({
+                action: 'update',
+                name: item.name,
+                points: item.points
+            });
+        }
+
+        function openEditModal(name = '') {
+            const modal = document.getElementById('editModal');
+            modal.style.display = 'flex';
+
+            if (name) {
+                const item = attendeesList.find(a => a.name === name);
+                if (item) {
+                    document.getElementById('modalTitle').textContent = 'تعديل بيانات: ' + item.name;
+                    document.getElementById('fieldName').value = item.name;
+                    document.getElementById('fieldName').readOnly = true;
+                    document.getElementById('fieldGroup').value = item.group || '';
+                    document.getElementById('fieldPoints').value = item.points || 0;
+                    document.getElementById('fieldRoom').value = item.room || '';
+                    document.getElementById('fieldBus').value = item.bus || '';
+                    document.getElementById('fieldSeat').value = item.seat || '';
+                    document.getElementById('fieldFeedback').value = item.feedback || '';
+                    document.getElementById('fieldNextTrip').value = item.nextTrip || '';
+                }
+            } else {
+                document.getElementById('modalTitle').textContent = 'إضافة مشترك جديد';
+                document.getElementById('attendeeForm').reset();
+                document.getElementById('fieldName').readOnly = false;
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function editRow(name) {
+            openEditModal(name);
+        }
+
+        async function deleteRow(name) {
+            if (!confirm(`هل أنت تأكد من حذف المشترك: ${name}؟`)) return;
+            attendeesList = attendeesList.filter(a => a.name !== name);
+            renderTable();
+            updateStats();
+
+            await DataService.sendToGAS({
+                action: 'delete',
+                name: name
+            });
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitModalBtn');
+            btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> جاري الحفظ...';
+
+            const payload = {
+                action: 'update',
+                name: document.getElementById('fieldName').value.trim(),
+                group: document.getElementById('fieldGroup').value.trim(),
+                points: Number(document.getElementById('fieldPoints').value || 0),
+                room: document.getElementById('fieldRoom').value.trim(),
+                bus: document.getElementById('fieldBus').value.trim(),
+                seat: document.getElementById('fieldSeat').value.trim(),
+                feedback: document.getElementById('fieldFeedback').value.trim(),
+                nextTrip: document.getElementById('fieldNextTrip').value.trim()
+            };
+
+            let item = attendeesList.find(a => a.name === payload.name);
+            if (item) {
+                Object.assign(item, payload);
+            } else {
+                attendeesList.push(payload);
+            }
+
+            renderTable();
+            updateStats();
+            closeEditModal();
+            btn.innerHTML = 'حفظ وإرسال للشيت';
+
+            await DataService.sendToGAS(payload);
+        }
+
+        function openGuideModal() {
+            document.getElementById('guideModal').style.display = 'flex';
+        }
+
+        function closeGuideModal() {
+            document.getElementById('guideModal').style.display = 'none';
+        }
+
+        async function copyGasCode() {
+            const codeEl = document.getElementById('gasScriptCode');
+            const text   = codeEl.value;
+            try {
+                // الطريقة الحديثة والآمنة
+                await navigator.clipboard.writeText(text);
+            } catch (err) {
+                // Fallback للمتصفحات القديمة فقط
+                codeEl.select();
+                document.execCommand('copy');
+            }
+            const btn = document.querySelector('[onclick="copyGasCode()"]');
+            if (btn) {
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> تم النسخ!';
+                btn.style.background = '#10b981';
+                setTimeout(() => { btn.innerHTML = original; btn.style.background = ''; }, 2000);
+            }
+        }
+
+        function escapeHTML(s) {
+            return String(s || '').replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+    </script>
+<script src="assets/js/bg-3d.js?v=3.0" defer></script>
+</body>
+</html>
